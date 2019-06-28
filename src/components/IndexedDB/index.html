@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible">
+    <title>IndexedDB</title>
+    <script src="../common/js/art-template.js"></script>
+</head>
+<body>
+  <table>
+    <tr>
+      <td><label for="name">用户名</label></td>
+      <td><input type="text" name="name" id="name" autocomplete="on"></td>
+    </tr>
+    <tr>
+      <td><label for="phone">电话</label></td>
+      <td><input type="text" id="phone" name="phone"></td>
+    </tr>
+    <tr>
+      <td><label>地址</label></td>
+      <td><input type="text" name="address" id="address"></td>
+    </tr>
+</table>
+<input type="button" value="添加用户名" id="btnAdd" onclick="addPerson()" >
+<table>
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>name</th>
+      <th>address</th>
+      <th>phone</th>
+      <th>编辑</th>
+    </tr>
+  </thead>
+  <tbody id="tbd"></tbody>
+</table>
+<script id="tbTmpl" type="text/html">
+  <tr>
+    <th>{{id}}</th>
+    <th>{{name}}</th>
+    <th>{{address}}</th>
+    <th>{{phone}}</th>
+    <th>
+      <a href="#">修改</a>
+      <a href="#" onclick="delById({id})">删除</a>
+    </th>
+  </tr>
+</script>
+
+<script>
+    var db, dbName = 'demoDb', dbVersion = 1, personStore = 'person';
+
+    //兼容各种浏览器 创建数据库对象
+    var indexedDB = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB || window.msIndexedDB;
+
+    if (!indexedDB) {
+      console.log('您的浏览器不支持IndexedDB！！')
+    }
+
+    loadTableData();
+
+    /**
+     * 配合游标遍历表中数据
+     * */
+    function loadTableData() {
+      return new Promise(async (resolve,reject) => {
+        await openIndexedDB();
+        document.getElementById('tbd').innerHTML = "";
+        let tans = db.transaction(personStore, 'readwrite');
+        let objectStroe = tans.objectStore(personStore);
+        let cursorRequest = objectStroe.openCursor();
+        cursorRequest.onsuccess = evt => {
+          console.log('游标的值');
+          console.log(evt);
+          let cursor = evt.target.result;
+          console.log(cursor.value.valueOf());
+          if (cursor) {
+            alert(JSON.stringify(cursor.value.valueOf()));
+            let html = template('tabTmpl', JSON.stringify(cursor.value.valueOf()));
+            document.getElementById('tbd').innerHTML += html;
+            cursor.continue();//游标继续向下
+          }
+        }
+      })
+    };
+
+    /**
+     *
+     打开数据库
+     */
+    function openIndexedDB() {
+      return new Promise((resolve, reject) => {
+        //打开一个数据库
+        var request = indexedDB.open(dbName, dbVersion);
+
+        //打开成功
+        request.onsuccess = evt => {
+          db = request.result;
+          resolve(evt);
+          console.log('打开成功');
+        };
+
+        //打开成功 然后版本有变化
+        request.onupgradeneeded =  evt => {
+          db = request.result;
+          if (!db.objectStoreNames.contains(personStore)) {
+            var objectStore = db.createObjectStore(personStore, {
+              keyPath: 'id',
+              autoIncrement: true
+            });
+            objectStore.createIndex('name', 'name', {unique: false});
+            objectStore.createIndex('phone', 'phone', {unique: false});
+            objectStore.createIndex('address', 'address', {unique: false});
+            request.transaction.oncomplete = evt => {
+              resolve();
+            }
+          }
+          console.log('数据库版本更为' + dbVersion);
+        };
+        //打开失败
+        request.onerror = ev =>  {
+          reject(request.error);
+          console.log(e.currentTarget)
+        };
+      });
+    };
+
+    /***
+     * 添加用户
+     */
+     function addPerson() {
+      return new Promise(async (resolve, reject) => {
+        if (!db) {
+          return;
+        }
+        await openIndexedDB();
+        let pName = document.getElementById('name').value;
+        let pPhone = document.getElementById('phone').value;
+        let pAddress = document.getElementById('address').value;
+
+        //创建一个事务
+        let transaction = db.transaction(personStore, 'readwrite');
+        //通过事务获取store
+        let store = transaction.objectStore(personStore);
+
+      if(pName !== "" && pAddress !== "" && pPhone !== ""){
+        console.log('要加入数据库的数据是：'+pName+'==>'+pPhone+'==>'+pAddress)
+        let addRequest = store.add({name: pName, phone: pPhone, address: pAddress});
+        addRequest.onsuccess = evt => {
+          console.log('加入数据成功！！');
+          console.log(evt);
+          resolve(evt);
+          loadTableData();//添加完后重新刷新表格
+        };
+        addRequest.onerror = evt => {
+          reject(evt.currentTarget)
+        }
+      }else {
+        alert('值不能为空！！')
+      }
+
+      })
+    };
+
+    /***
+     * 删除用户
+     */
+    function delById(id) {
+      if (!db || id) {
+        return;
+      }
+
+      //创建一个事务
+      var transaction = db.transaction(personStore, 'readwrite');
+      //事务获取store
+      var store = transaction.objectStore(personStore);
+      var deleteRequest = store.delete(id);
+      deleteRequest.onsuccess = function (e) {
+        loadTableData()
+      };
+      deleteRequest.onerror = function (e) {
+        console.log(e.currentTarget.error);
+      };
+    }
+
+    /***
+     * 删除数据库
+     */
+</script>
+</body>
+</html>

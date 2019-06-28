@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>使用Canvas制作气泡动画</title>
+  <style>
+    *{
+      margin: 0;
+      padding: 0;overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+  var canvas = document.getElementById('canvas'),
+    c = canvas.getContext('2d'),
+    canvasWidth,
+    canvasHiegth,
+    mouseX,
+    mouseY,
+    colorArray = ['#272E32','#9DBDC6','#DAEAEF'],
+    circleArray = [],
+    timer,
+    maxRadius = 35;
+
+  var myCircle = new Circle(30,80,10);
+
+  /***
+   * 自适应窗体
+   * */
+  window.addEventListener('resize',resizeCanvas,false);
+  function resizeCanvas() {
+    if(!!canvas){
+      canvasHiegth = canvas.height = window.innerHeight;
+      canvasWidth = canvas.width = window.innerWidth;
+    }
+    updateAll();
+  };
+
+  /***
+   * 鼠标移动
+   * */
+  canvas.onmouseover = function (e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  };
+
+  /***
+   * 气泡函数
+   */
+  function Circle(xCoordinate,yCoordinate,radius) {
+    let randomNumber = Math.floor(Math.random()*4); //零到4的随机数
+    let randomTrueOrFalse = Math.floor(Math.random()*2); //零到2的随机数
+    let randomTrueOrFalseTwo = Math.floor(Math.random()*2);  //零到2的随机数
+
+    this.xCoordinate = xCoordinate; //x轴坐标
+    this.yCoordinate = yCoordinate;//y轴坐标
+    this.raduis = this.raduis;  //气泡半径
+    this.color = colorArray[randomNumber];
+
+    //气泡移动x y轴增减
+    if(randomTrueOrFalse === 1){
+      this.xVelocity = -Math.random() * 1;
+      this.yVelocity  = -Math.random() * 1;
+    }else {
+      this.xVelocity = Math.random()*1;
+      this.yVelocity  = Math.random()*1;
+    }
+
+    //距离接近0时，增加半径
+    this.update = function () {
+      this.xCoordinate += this.xVelocity; //气泡x坐标随着True Or False的 判断在改变
+      this.yCoordinate += this.yVelocity; //气泡y坐标随着True Or False的 判断在改变
+      let xDistance = mouseX - xCoordinate; //鼠标坐标-减去气泡坐标 = 距离
+      let yDistance = mouseY - yCoordinate;
+      let originalRadius = radius;
+
+      //移动函数
+      if(this.xCoordinate + this.raduis > canvasWidth || this.xCoordinate - this.raduis < 0){
+        this.xVelocity = -this.xVelocity;
+      }
+      if(this.yCoordinate + this.raduis > canvasHiegth || this.yCoordinate - this.raduis <0){
+        this.yVelocity = -this.yVelocity;
+      }
+
+      //气泡大小变化
+      if(xDistance<50 && xDistance>-50&&this.raduis<maxRadius && yDistance>50&&yDistance<-50){
+        this.raduis += 20;
+      }else if((xDistance>=50&&originalRadius<this.raduis)||(xDistance<=-50&&originalRadius<this.raduis)||(yDistance>=50&&originalRadius<this.raduis)||(yDistance<=50&&originalRadius<this.raduis)){
+        if(this.raduis>3){
+          this.raduis -= 2;
+        }
+      }
+      this.draw();
+    };
+
+    //绘制气泡
+    this.draw = function () {
+      c.beginPath();
+      c.arc(this.xCoordinate,this.yCoordinate,this.raduis,0,Math.PI*2);
+      c.fillStyle = this.color;
+      c.fill();
+    }
+  };
+
+  /**
+   * 气泡数量函数
+   */
+  function count() {
+    //循环气泡数量，将随机数push到circleArray数组中
+    for(let i = 0;i<800;i++){
+      let randomXCoordinate = Math.random()*canvasWidth;
+      let randomYCoordinate = Math.random()*canvasHiegth;
+      let randomRaduis = Math.random()*5;
+
+      circleArray.push(new Circle(randomXCoordinate,randomXCoordinate,randomRaduis));
+    }
+  }
+
+  /**
+   * 更新函数
+   */
+  function updateAll() {
+    c.clear(0,0,canvasWidth,canvasHiegth);  //清空canvas
+    myCircle.update();
+    for (let i = 0 ;i < circleArray.length;i++){
+      circleArray[i].update();
+    };
+
+    clearTimeout(timer);
+    timer = setTimeout(updateAll,8);
+  }
+
+  
+</script>
+</body>
+</html>
