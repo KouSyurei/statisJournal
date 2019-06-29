@@ -16,7 +16,7 @@
   var canvas = document.getElementById('canvas'),
     c = canvas.getContext('2d'),
     canvasWidth,
-    canvasHiegth,
+    canvasHeight,
     mouseX,
     mouseY,
     colorArray = ['#272E32','#9DBDC6','#DAEAEF'],
@@ -32,7 +32,7 @@
   window.addEventListener('resize',resizeCanvas,false);
   function resizeCanvas() {
     if(!!canvas){
-      canvasHiegth = canvas.height = window.innerHeight;
+      canvasHeight = canvas.height = window.innerHeight;
       canvasWidth = canvas.width = window.innerWidth;
     }
     updateAll();
@@ -56,16 +56,20 @@
 
     this.xCoordinate = xCoordinate; //x轴坐标
     this.yCoordinate = yCoordinate;//y轴坐标
-    this.raduis = this.raduis;  //气泡半径
+    this.raduis = radius;  //气泡半径
     this.color = colorArray[randomNumber];
 
     //气泡移动x y轴增减
-    if(randomTrueOrFalse === 1){
+
+    if(randomTrueOrFalse == 1){
       this.xVelocity = -Math.random() * 1;
+    }else {
+      this.xVelocity = Math.random() * 1;
+    }
+    if(randomTrueOrFalse == 1){
       this.yVelocity  = -Math.random() * 1;
     }else {
-      this.xVelocity = Math.random()*1;
-      this.yVelocity  = Math.random()*1;
+      this.yVelocity  = Math.random() * 1;
     }
 
     //距离接近0时，增加半径
@@ -80,14 +84,14 @@
       if(this.xCoordinate + this.raduis > canvasWidth || this.xCoordinate - this.raduis < 0){
         this.xVelocity = -this.xVelocity;
       }
-      if(this.yCoordinate + this.raduis > canvasHiegth || this.yCoordinate - this.raduis <0){
+      if(this.yCoordinate + this.raduis > canvasHeight || this.yCoordinate - this.raduis <0){
         this.yVelocity = -this.yVelocity;
       }
 
       //气泡大小变化
-      if(xDistance<50 && xDistance>-50&&this.raduis<maxRadius && yDistance>50&&yDistance<-50){
-        this.raduis += 20;
-      }else if((xDistance>=50&&originalRadius<this.raduis)||(xDistance<=-50&&originalRadius<this.raduis)||(yDistance>=50&&originalRadius<this.raduis)||(yDistance<=50&&originalRadius<this.raduis)){
+      if(xDistance<50 && xDistance>-50&&this.raduis<maxRadius && yDistance<50&&yDistance>-50){
+        this.raduis += 2;
+      }else if((xDistance>=50&&originalRadius<this.raduis)||(xDistance<=-50&&originalRadius<this.raduis)||(yDistance>=50&&originalRadius<this.raduis)||(yDistance<=-50&&originalRadius<this.raduis)){
         if(this.raduis>3){
           this.raduis -= 2;
         }
@@ -111,18 +115,17 @@
     //循环气泡数量，将随机数push到circleArray数组中
     for(let i = 0;i<800;i++){
       let randomXCoordinate = Math.random()*canvasWidth;
-      let randomYCoordinate = Math.random()*canvasHiegth;
+      let randomYCoordinate = Math.random()*canvasHeight;
       let randomRaduis = Math.random()*5;
-
-      circleArray.push(new Circle(randomXCoordinate,randomXCoordinate,randomRaduis));
+      circleArray.push(new Circle(randomXCoordinate,randomYCoordinate,randomRaduis));
     }
   }
 
   /**
    * 更新函数
    */
-  function updateAll() {
-    c.clear(0,0,canvasWidth,canvasHiegth);  //清空canvas
+    function updateAll() {
+    c.clearRect(0,0,canvasWidth,canvasHeight);  //清空canvas
     myCircle.update();
     for (let i = 0 ;i < circleArray.length;i++){
       circleArray[i].update();
@@ -132,6 +135,9 @@
     timer = setTimeout(updateAll,8);
   }
 
+  resizeCanvas();
+  count();
+  updateAll();
   
 </script>
 </body>
