@@ -19,7 +19,7 @@
     canvasHeight,
     mouseX,
     mouseY,
-    colorArray = ['#272E32','#9DBDC6','#DAEAEF'],
+    colorArray = ['#272F32', '#9DBDC6', '#FF3D2E', '#DAEAEF'],
     circleArray = [],
     timer,
     maxRadius = 35;
@@ -61,15 +61,15 @@
 
     //气泡移动x y轴增减
 
-    if(randomTrueOrFalse == 1){
-      this.xVelocity = -Math.random() * 1;
+    if(randomTrueOrFalse === 1){
+      this.xVelocity = -Math.random() ;
     }else {
-      this.xVelocity = Math.random() * 1;
+      this.xVelocity = Math.random() ;
     }
-    if(randomTrueOrFalse == 1){
-      this.yVelocity  = -Math.random() * 1;
+    if(randomTrueOrFalse === 1){
+      this.yVelocity  = -Math.random() ;
     }else {
-      this.yVelocity  = Math.random() * 1;
+      this.yVelocity  = Math.random() ;
     }
 
     //距离接近0时，增加半径
@@ -133,10 +133,10 @@
 
     clearTimeout(timer);
     timer = setTimeout(updateAll,8);
-  }
+  };
 
   resizeCanvas();
-  count();
+  count()
   updateAll();
   
 </script>
